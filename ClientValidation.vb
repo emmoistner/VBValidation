@@ -1,11 +1,16 @@
-Public Sub Worksheet_Change(ByVal Target As Range)
+Public Sub Worksheet_Change(ByVal Target As range)
 Application.EnableEvents = False
+
 Dim StartRow As Integer
 Dim RowCounter As Integer
 Dim LastItemThreshold As Integer
 Dim LastItemPosition As Integer
 Dim ErrorCounter As Integer
 Dim WarningCounter As Integer
+Dim LastRowRequired As Integer
+
+Dim RangeStart As String
+Dim RangeEnd As String
 Dim Root As String
 Dim Category As String
 Dim Name As String
@@ -64,12 +69,27 @@ TwitterColumn = "O"
 TagsColumn = "P"
 PhotoColumn = "Q"
 
-StartRow = 2
-LastItemThreshold = 15
+StartRow = 3
 RowCounter = StartRow
-LastItemPosition = 25
+LastItemPosition = 3
+WarningCounter = 0
+ErrorCounter = 0
+
+'Parse Desired Item Limit
+LastItemRequired = ThisWorkbook.Sheets("Instructions").range("F2").Text
+
+If IsNumeric(LastItemRequired) Then
+    LastItemRequired = CInt(LastItemRequired)
+Else
+    LastItemRequired = -1
+End If
+
+If LastItemRequired < 1 Then
+MsgBox ("Please use a number in cell F2 on the instructions sheet.")
+End If
+
 'LastPositionSearch
-Do While RowCounter <= LastItemThreshold
+Do While RowCounter <= LastItemRequired
     Category = Cells(RowCounter, CategoryColumn).Text
     Category = Trim(Category)
     Name = Cells(RowCounter, NameColumn).Text
@@ -145,9 +165,24 @@ Do While RowCounter <= LastItemPosition
         If Category = "" And Name = "" Then
             Cells(RowCounter, CategoryColumn).Interior.Color = ErrorColor
             Cells(RowCounter, NameColumn).Interior.Color = ErrorColor
-            ErrorCounter = (ErrorCounter + 1)
+            ErrorCounter = (ErrorCounter + 2)
         End If
     End If
+    
+    
+'Email Verification
+    If fncIsMail(Cells(RowCounter, EmailColumn).Text) Or Cells(RowCounter, EmailColumn).Text = "" Then
+        Cells(RowCounter, EmailColumn).Interior.ColorIndex = 0
+            If ((RowCounter Mod 2) = 0) Then
+                Cells(RowCounter, EmailColumn).Interior.Color = AltRowColor
+            End If
+    Else
+        Cells(RowCounter, EmailColumn).Interior.Color = WarningColor
+        WarningCounter = WarningCounter + 1
+    End If
+    
+    
+    
 'Category and Name Verification && Category and Name Cell Color Reset
     If Len(Category) < 1 And Len(Name) > 0 Then
         Cells(RowCounter, CategoryColumn).Interior.Color = ErrorColor
@@ -185,34 +220,87 @@ Do While RowCounter <= LastItemPosition
         Else
             Cells(RowCounter, CategoryColumn).Interior.ColorIndex = 0
             Cells(RowCounter, NameColumn).Interior.ColorIndex = 0
+            Cells(RowCounter, EmailColumn).Interior.ColorIndex = 0
             If ((RowCounter Mod 2) = 0) Then
                 Cells(RowCounter, CategoryColumn).Interior.Color = AltRowColor
                 Cells(RowCounter, NameColumn).Interior.Color = AltRowColor
+                Cells(RowCounter, EmailColumn).Interior.Color = AltRowColor
             End If
         End If
     End If
-    RowCounter = (RowCounter + 1)
+    
+
+    RowCounter = RowCounter + 1
 Loop
+'End Content Check
 
 RowCounter = LastItemPosition + 1
 'Beyond Last Item Format Reset
-Do While RowCounter <= LastItemThreshold
-    Dim RangeStart As String
-    Dim RangeEnd As String
+Do While RowCounter <= LastItemRequired
     RangeStart = CategoryColumn & CStr(RowCounter)
     RangeEnd = PhotoColumn & CStr(RowCounter)
-    RangeVariable = RangeStart & ":" & RangeEnd
+    rangevariable = RangeStart & ":" & RangeEnd
     If ((RowCounter Mod 2) = 0) Then
-        Range(RangeVariable).Interior.Color = AltRowColor
+        range(rangevariable).Interior.Color = AltRowColor
     Else
-        Range(RangeVariable).Interior.ColorIndex = 0
+        range(rangevariable).Interior.ColorIndex = 0
     End If
+    range(rangevariable).Borders.LineStyle = xlContinuous
     RowCounter = RowCounter + 1
 Loop
 
+'Blank Out Unused Spaces
+
+Dim ItemCap As Integer
+ItemCap = 500
+RowCounter = LastItemRequired + 1
+Do While RowCounter <= ItemCap
+    RangeStart = CategoryColumn & CStr(RowCounter)
+    RangeEnd = PhotoColumn & CStr(RowCounter)
+    rangevariable = RangeStart & ":" & RangeEnd
+    
+    If RowCounter = LastItemRequired + 1 Then
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlEdgeLeft).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlEdgeRight).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlEdgeBottom).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlInsideHorizontal).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlInsideVertical).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Interior.ColorIndex = 0
+    Else
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlEdgeLeft).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlEdgeRight).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlEdgeTop).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlEdgeBottom).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlInsideHorizontal).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Borders(Excel.XlBordersIndex.xlInsideVertical).LineStyle = Excel.XlLineStyle.xlLineStyleNone
+        range(rangevariable).Interior.ColorIndex = 0
+    End If
+
+RowCounter = RowCounter + 1
+Loop
 
 If ErrorCounter > 0 Then
 'MsgBox (CStr(ErrorCounter) & " Errors Found!")
 End If
 Application.EnableEvents = True
 End Sub
+
+Private Function fncIsMail(ByVal strEmail As String) As Boolean
+    Const strRFC2822 = "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!" & _
+                        "#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:" & _
+                        "[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:" & _
+                        "[a-z0-9-]*[a-z0-9])?"
+    Dim objRegEx As Object
+    On Error GoTo Fin
+    Set objRegEx = CreateObject("Vbscript.Regexp")
+    With objRegEx
+        .Pattern = strRFC2822
+        .IgnoreCase = True
+        fncIsMail = .Test(strEmail)
+    End With
+Fin:
+    Set objRegEx = Nothing
+    If Err.Number <> 0 Then MsgBox "Error: " & _
+        Err.Number & " " & Err.Description
+End Function
+
