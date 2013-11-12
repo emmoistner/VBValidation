@@ -139,14 +139,56 @@ Do While RowCounter <= LastItemPosition
     Tags = Trim(Tags)
     Photo = Cells(RowCounter, PhotoColumn).Text
     Photo = Trim(Photo)
-    If Name = "" Then
+
+'Empty Category or Name Cell, but other fields have been entered
+    If Description <> "" Or Address <> "" Or City <> "" Or State <> "" Or Zip <> "" Or Phone <> "" Or Website <> "" Or Email <> "" Or Latitude <> "" Or Longitude <> "" Or Facebook <> "" Or Twitter <> "" Or Tags <> "" Or Photo <> "" Then
+        If Category = "" And Name = "" Then
+            Cells(RowCounter, CategoryColumn).Interior.Color = ErrorColor
+            Cells(RowCounter, NameColumn).Interior.Color = ErrorColor
+            ErrorCounter = (ErrorCounter + 1)
+        End If
+    End If
+'Category and Name Verification && Category and Name Cell Color Reset
+    If Len(Category) < 1 And Len(Name) > 0 Then
+        Cells(RowCounter, CategoryColumn).Interior.Color = ErrorColor
+        ErrorCounter = (ErrorCounter + 1)
+        If Category <> "" Then
+                Cells(RowCounter, CategoryColumn).Interior.ColorIndex = 0
+                If ((RowCounter Mod 2) = 0) Then
+                    Cells(RowCounter, CategoryColumn).Interior.Color = AltRowColor
+                End If
+        End If
+        If Name <> "" Then
+            Cells(RowCounter, NameColumn).Interior.ColorIndex = 0
+            If ((RowCounter Mod 2) = 0) Then
+                Cells(RowCounter, NameColumn).Interior.Color = AltRowColor
+            End If
+        End If
+    ElseIf Len(Name) < 1 And Len(Category) > 0 Then
         Cells(RowCounter, NameColumn).Interior.Color = ErrorColor
         ErrorCounter = (ErrorCounter + 1)
+        If Category <> "" Then
+            Cells(RowCounter, CategoryColumn).Interior.ColorIndex = 0
+            If ((RowCounter Mod 2) = 0) Then
+                Cells(RowCounter, CategoryColumn).Interior.Color = AltRowColor
+            End If
+        End If
+            If Name <> "" Then
+            Cells(RowCounter, NameColumn).Interior.ColorIndex = 0
+                If ((RowCounter Mod 2) = 0) Then
+                    Cells(RowCounter, NameColumn).Interior.Color = AltRowColor
+            End If
+        End If
     Else
-        Cells(RowCounter, NameColumn).Interior.ColorIndex = 0
-        If ((RowCounter Mod 2) = 0) Then
-            Cells(RowCounter, NameColumn).Interior.Color = AltRowColor
-            Else
+        If Description <> "" Or Address <> "" Or City <> "" Or State <> "" Or Zip <> "" Or Phone <> "" Or Website <> "" Or Email <> "" Or Latitude <> "" Or Longitude <> "" Or Facebook <> "" Or Twitter <> "" Or Tags <> "" Or Photo <> "" Then
+            'Do Nothing
+        Else
+            Cells(RowCounter, CategoryColumn).Interior.ColorIndex = 0
+            Cells(RowCounter, NameColumn).Interior.ColorIndex = 0
+            If ((RowCounter Mod 2) = 0) Then
+                Cells(RowCounter, CategoryColumn).Interior.Color = AltRowColor
+                Cells(RowCounter, NameColumn).Interior.Color = AltRowColor
+            End If
         End If
     End If
     RowCounter = (RowCounter + 1)
@@ -170,7 +212,7 @@ Loop
 
 
 If ErrorCounter > 0 Then
-MsgBox (CStr(ErrorCounter) & " Errors Found!")
+'MsgBox (CStr(ErrorCounter) & " Errors Found!")
 End If
 Application.EnableEvents = True
 End Sub
