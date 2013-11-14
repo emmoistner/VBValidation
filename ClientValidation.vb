@@ -102,6 +102,8 @@ Do While RowCounter <= LastItemRequired
     City = Trim(City)
     State = Cells(RowCounter, StateColumn).Text
     State = Trim(State)
+    Zip = Cells(RowCounter, ZipColumn).Text
+    Zip = Trim(Zip)
     Phone = Cells(RowCounter, PhoneColumn).Text
     Phone = Trim(Phone)
     Website = Cells(RowCounter, WebsiteColumn).Text
@@ -141,6 +143,8 @@ Do While RowCounter <= LastItemPosition
     City = Trim(City)
     State = Cells(RowCounter, StateColumn).Text
     State = Trim(State)
+    Zip = Cells(RowCounter, ZipColumn).Text
+    Zip = Trim(Zip)
     Phone = Cells(RowCounter, PhoneColumn).Text
     Phone = Trim(Phone)
     Website = Cells(RowCounter, WebsiteColumn).Text
@@ -169,6 +173,17 @@ Do While RowCounter <= LastItemPosition
         End If
     End If
     
+'Zip Verification
+
+     If fncIsZip(Zip) Or Cells(RowCounter, ZipColumn).Text = "" Then
+        Cells(RowCounter, ZipColumn).Interior.ColorIndex = 0
+            If ((RowCounter Mod 2) = 0) Then
+                Cells(RowCounter, ZipColumn).Interior.Color = AltRowColor
+            End If
+    Else
+        Cells(RowCounter, ZipColumn).Interior.Color = WarningColor
+        WarningCounter = WarningCounter + 1
+    End If
     
 'Email Verification
     If fncIsMail(Cells(RowCounter, EmailColumn).Text) Or Cells(RowCounter, EmailColumn).Text = "" Then
@@ -180,9 +195,30 @@ Do While RowCounter <= LastItemPosition
         Cells(RowCounter, EmailColumn).Interior.Color = WarningColor
         WarningCounter = WarningCounter + 1
     End If
-    
-    
-    
+
+'Phone Verification
+   
+    If Len(Phone) = 10 And fncIsPhoneNumber(Phone) = -1 Then
+    Cells(RowCounter, PhoneColumn).Value = fncToPhone(Cells(RowCounter, PhoneColumn).Text)
+    End If
+    Phone = Cells(RowCounter, PhoneColumn).Text
+    Phone = Trim(Phone)
+    If fncIsPhoneNumber(Phone) = 0 And Phone = "" Or Len(Phone) = 10 And fncIsPhoneNumber(Phone) = -1 Then
+        Cells(RowCounter, EmailColumn).Interior.ColorIndex = 0
+        If ((RowCounter Mod 2) = 0) Then
+            Cells(RowCounter, PhoneColumn).Interior.Color = AltRowColor
+        End If
+    Else
+        Cells(RowCounter, PhoneColumn).Interior.Color = WarningColor
+        WarningCounter = WarningCounter + 1
+    End If
+    If Len(Phone) = 12 And fncIsPhoneNumber(Phone) = 1 Then
+        Cells(RowCounter, PhoneColumn).Interior.ColorIndex = 0
+        If ((RowCounter Mod 2) = 0) Then
+            Cells(RowCounter, PhoneColumn).Interior.Color = AltRowColor
+        End If
+    End If
+     
 'Category and Name Verification && Category and Name Cell Color Reset
     If Len(Category) < 1 And Len(Name) > 0 Then
         Cells(RowCounter, CategoryColumn).Interior.Color = ErrorColor
@@ -221,10 +257,12 @@ Do While RowCounter <= LastItemPosition
             Cells(RowCounter, CategoryColumn).Interior.ColorIndex = 0
             Cells(RowCounter, NameColumn).Interior.ColorIndex = 0
             Cells(RowCounter, EmailColumn).Interior.ColorIndex = 0
+            Cells(RowCounter, PhoneColumn).Interior.ColorIndex = 0
             If ((RowCounter Mod 2) = 0) Then
                 Cells(RowCounter, CategoryColumn).Interior.Color = AltRowColor
                 Cells(RowCounter, NameColumn).Interior.Color = AltRowColor
                 Cells(RowCounter, EmailColumn).Interior.Color = AltRowColor
+                Cells(RowCounter, PhoneColumn).Interior.Color = AltRowColor
             End If
         End If
     End If
@@ -252,7 +290,7 @@ Loop
 'Blank Out Unused Spaces
 
 Dim ItemCap As Integer
-ItemCap = 500
+ItemCap = 75
 RowCounter = LastItemRequired + 1
 Do While RowCounter <= ItemCap
     RangeStart = CategoryColumn & CStr(RowCounter)
@@ -303,4 +341,29 @@ Fin:
     If Err.Number <> 0 Then MsgBox "Error: " & _
         Err.Number & " " & Err.Description
 End Function
+
+Private Function fncToPhone(ByVal strPhoneNumber As String) As String
+    Dim first As String
+    Dim second As String
+    Dim third As String
+    first = Left(strPhoneNumber, 3)
+    second = Mid$(strPhoneNumber, 4, 3)
+    third = Right(strPhoneNumber, 4)
+    fncToPhone = first + "-" + second + "-" + third
+End Function
+
+Private Function fncIsPhoneNumber(ByVal strPhone As String) As Integer
+    fncIsPhoneNumber = 0
+    If (strPhone Like "###[-]###[-]####") Then
+        fncIsPhoneNumber = 1
+    End If
+    If (strPhone Like "##########") Then
+        fncIsPhoneNumber = -1
+    End If
+End Function
+
+Private Function fncIsZip(ByVal strZip As String) As Boolean
+    fncIsZip = strZip Like "#####"
+End Function
+
 
