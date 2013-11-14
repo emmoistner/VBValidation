@@ -258,11 +258,13 @@ Do While RowCounter <= LastItemPosition
             Cells(RowCounter, NameColumn).Interior.ColorIndex = 0
             Cells(RowCounter, EmailColumn).Interior.ColorIndex = 0
             Cells(RowCounter, PhoneColumn).Interior.ColorIndex = 0
+            Cells(RowCounter, ZipColumn).Interior.ColorIndex = 0
             If ((RowCounter Mod 2) = 0) Then
                 Cells(RowCounter, CategoryColumn).Interior.Color = AltRowColor
                 Cells(RowCounter, NameColumn).Interior.Color = AltRowColor
                 Cells(RowCounter, EmailColumn).Interior.Color = AltRowColor
                 Cells(RowCounter, PhoneColumn).Interior.Color = AltRowColor
+                Cells(RowCounter, ZipColumn).Interior.Color = AltRowColor
             End If
         End If
     End If
